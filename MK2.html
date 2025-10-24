@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Tabel Periodik Interaktif – Flashcard Unsur</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --gap: 8px;
+        --card-w: min(
+          max(calc((100vw - 48px - (17 * var(--gap))) / 14), 80px),
+          140px
+        );
+        --card-h: calc(var(--card-w) * 1.3);
+        --navy: #0e2546;
+
+        /* 🎨 warna kuat dan mencolok per golongan */
+        --alkali: #ffb347; /* oranye terang */
+        --alkaline: #ff8fa3; /* merah muda cerah */
+        --transition: #66b3ff; /* biru cerah */
+        --posttransition: #c084fc; /* ungu cerah */
+        --metalloid: #7fe57f; /* hijau lembut jelas */
+        --nonmetal: #ffd966; /* kuning terang */
+        --halogen: #4ed99c; /* hijau toska */
+        --noble: #7fdbff; /* biru langit */
+        --other: #e5e5e5; /* abu terang */
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        margin: 0;
+        background: linear-gradient(180deg, #f3f6ff, #ffffff);
+        color: var(--navy);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 16px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+      }
+      .subtitle {
+        color: #2f3e9e;
+        margin: 8px 0 16px;
+        font-size: 14px;
+        text-align: center;
+      }
+      .table-wrap {
+        width: 100%;
+        max-width: 1280px;
+        overflow: auto;
+        padding: 4px;
+      }
+      .ptable {
+        display: grid;
+        grid-template-columns: repeat(18, 1fr);
+        grid-auto-rows: auto; /* otomatis menyesuaikan tinggi kartu + input */
+        gap: var(--gap);
+        justify-items: center;
+        align-items: start;
+      }
+      .element {
+        width: 100%;
+        max-width: var(--card-w);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .inner {
+        width: 100%;
+        height: var(--card-h);
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+        border-radius: 12px;
+      }
+
+      .input-wrap {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+      }
+
+      input {
+        width: 90%;
+        padding: 4px;
+        font-size: 12px;
+        box-sizing: border-box;
+      }
+
+      .element.flipped .inner {
+        transform: rotateY(180deg);
+      }
+      .face {
+        position: absolute;
+        inset: 0;
+        border-radius: 8px;
+        backface-visibility: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      }
+      /* SISI DEPAN: Detail lengkap unsur */
+      .front {
+        background: #fff;
+        color: var(--navy);
+        border: 2px solid #bbb;
+        text-align: center;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 8px;
+      }
+
+      .atomic-number {
+        font-size: calc(var(--card-h) * 0.16);
+        font-weight: 600;
+        color: #3b3b3b;
+        text-align: left;
+      }
+
+      .symbol {
+        font-size: calc(var(--card-h) * 0.38);
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .mass {
+        font-size: calc(var(--card-h) * 0.14);
+        font-weight: 500;
+        color: #333;
+      }
+
+      /* SISI BELAKANG: Hanya nomor atom dengan warna */
+      .back {
+        color: #fff;
+        font-weight: 600;
+        font-size: calc(var(--card-h) * 0.18);
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+        transform: rotateY(180deg);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 10px;
+        overflow-wrap: break-word; /* biar teks panjang tetap masuk */
+        word-break: break-word;
+        line-height: 1.2;
+        border-radius: 12px;
+        column-count: 3; /* jumlah kolom */
+        column-gap: 12px; /* jarak antar kolom */
+        column-rule: 1px solid rgba(255, 255, 255, 0.3);
+      }
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-5px);
+        }
+        75% {
+          transform: translateX(5px);
+        }
+      }
+
+      .submitBtn {
+        padding: 4px 8px;
+        background: linear-gradient(135deg, #00d4ff, #0099ff);
+        border: none;
+        border-radius: 4px;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        margin-left: 2px;
+        transition: all 0.3s ease;
+      }
+
+      .submitBtn:hover {
+        background: linear-gradient(135deg, #0099ff, #0077cc);
+        transform: scale(1.05);
+      }
+
+      .submitBtn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      input {
+        transition: all 0.3s ease;
+      }
+    </style>
+  </head>
+  <body>
+    <audio id="clickSound" src="sound.mp3"></audio>
+    <h1>Tabel Periodik Interaktif – Flashcard Unsur</h1>
+    <p class="subtitle">
+      Kartu menampilkan detail unsur. Klik untuk melihat nomor atom saja.
+    </p>
+
+    <div class="table-wrap">
+      <div id="ptable" class="ptable"></div>
+    </div>
+
+    <script>
+      const elements = [
+        //periode 1//
+        { z: 1, s: "H", mass: "1.008", r: 1, c: 1, spdf: "1s¹" },
+        { z: 2, s: "He", mass: "4.0026", r: 1, c: 18, spdf: "1s²" },
+        //periode 2//
+        { z: 3, s: "Li", mass: "6.94", r: 2, c: 1, spdf: "1s² 2s¹" },
+        { z: 4, s: "Be", mass: "9.0122", r: 2, c: 2, spdf: "1s² 2s²" },
+        { z: 5, s: "B", mass: "10.81", r: 2, c: 13, spdf: "1s² 2s² 2p¹" },
+        { z: 6, s: "C", mass: "12.011", r: 2, c: 14, spdf: "1s² 2s² 2p²" },
+        { z: 7, s: "N", mass: "14.007", r: 2, c: 15, spdf: "1s² 2s² 2p³" },
+        { z: 8, s: "O", mass: "15.999", r: 2, c: 16, spdf: "1s² 2s² 2p⁴" },
+        { z: 9, s: "F", mass: "18.998", r: 2, c: 17, spdf: "1s² 2s² 2p⁵" },
+        { z: 10, s: "Ne", mass: "20.180", r: 2, c: 18, spdf: "1s² 2s² 2p⁶" },
+        //periode 3//
+        { z: 11, s: "Na", mass: "22.990", r: 3, c: 1, spdf: "1s² 2s² 2p⁶ 3s¹" },
+        { z: 12, s: "Mg", mass: "24.305", r: 3, c: 2, spdf: "1s² 2s² 2p⁶ 3s²" },
+        {
+          z: 13,
+          s: "Al",
+          mass: "26.982",
+          r: 3,
+          c: 13,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p¹",
+        },
+        {
+          z: 14,
+          s: "Si",
+          mass: "28.085",
+          r: 3,
+          c: 14,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p²",
+        },
+        {
+          z: 15,
+          s: "P",
+          mass: "30.974",
+          r: 3,
+          c: 15,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p³",
+        },
+        {
+          z: 16,
+          s: "S",
+          mass: "32.06",
+          r: 3,
+          c: 16,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁴",
+        },
+        {
+          z: 17,
+          s: "Cl",
+          mass: "35.45",
+          r: 3,
+          c: 17,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁵",
+        },
+        {
+          z: 18,
+          s: "Ar",
+          mass: "39.948",
+          r: 3,
+          c: 18,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶",
+        },
+        //periode 4//
+        {
+          z: 19,
+          s: "K",
+          mass: "39.098",
+          r: 4,
+          c: 1,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s¹",
+        },
+        {
+          z: 20,
+          s: "Ca",
+          mass: "40.078",
+          r: 4,
+          c: 2,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s²",
+        },
+
+        {
+          z: 21,
+          s: "Sc",
+          mass: "44.956",
+          r: 4,
+          c: 3,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 3d¹ 4s²",
+        },
+        {
+          z: 22,
+          s: "Ti",
+          mass: "47.867",
+          r: 4,
+          c: 4,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 3d² 4s²",
+        },
+        {
+          z: 23,
+          s: "V",
+          mass: "50.942",
+          r: 4,
+          c: 5,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 3d³ 4s²",
+        },
+        {
+          z: 24,
+          s: "Cr",
+          mass: "51.996",
+          r: 4,
+          c: 6,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 3d⁵ 4s¹",
+        },
+        {
+          z: 25,
+          s: "Mn",
+          mass: "54.938",
+          r: 4,
+          c: 7,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 3d⁵ 4s²",
+        },
+        {
+          z: 26,
+          s: "Fe",
+          mass: "55.845",
+          r: 4,
+          c: 8,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 3d⁶ 4s²",
+        },
+        {
+          z: 27,
+          s: "Co",
+          mass: "58.933",
+          r: 4,
+          c: 9,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 3d⁷ 4s²",
+        },
+        {
+          z: 28,
+          s: "Ni",
+          mass: "58.693",
+          r: 4,
+          c: 10,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 3d⁸ 4s²",
+        },
+        {
+          z: 29,
+          s: "Cu",
+          mass: "63.546",
+          r: 4,
+          c: 11,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 3d¹⁰ 4s¹",
+        },
+        {
+          z: 30,
+          s: "Zn",
+          mass: "65.38",
+          r: 4,
+          c: 12,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 3d¹⁰ 4s²",
+        },
+
+        {
+          z: 31,
+          s: "Ga",
+          mass: "69.723",
+          r: 4,
+          c: 13,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 3d¹⁰ 4s² 4p¹",
+        },
+        {
+          z: 32,
+          s: "Ge",
+          mass: "72.63",
+          r: 4,
+          c: 14,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 3d¹⁰ 4s² 4p²",
+        },
+        {
+          z: 33,
+          s: "As",
+          mass: "74.922",
+          r: 4,
+          c: 15,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 3d¹⁰ 4s² 4p³",
+        },
+        {
+          z: 34,
+          s: "Se",
+          mass: "78.971",
+          r: 4,
+          c: 16,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 3d¹⁰ 4s² 4p⁴",
+        },
+        {
+          z: 35,
+          s: "Br",
+          mass: "79.904",
+          r: 4,
+          c: 17,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 3d¹⁰ 4s² 4p⁵",
+        },
+        {
+          z: 36,
+          s: "Kr",
+          mass: "83.798",
+          r: 4,
+          c: 18,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 3d¹⁰ 4s² 4p⁶",
+        },
+        //periode 5//
+        {
+          z: 37,
+          s: "Rb",
+          mass: "85.468",
+          r: 5,
+          c: 1,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s¹",
+        },
+        {
+          z: 38,
+          s: "Sr",
+          mass: "87.62",
+          r: 5,
+          c: 2,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s²",
+        },
+        {
+          z: 39,
+          s: "Y",
+          mass: "88.906",
+          r: 5,
+          c: 3,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 4d¹ 5s²",
+        },
+        {
+          z: 40,
+          s: "Zr",
+          mass: "91.224",
+          r: 5,
+          c: 4,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 4d² 5s²",
+        },
+        {
+          z: 41,
+          s: "Nb",
+          mass: "92.906",
+          r: 5,
+          c: 5,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 4d³ 5s²",
+        },
+        {
+          z: 42,
+          s: "Mo",
+          mass: "95.95",
+          r: 5,
+          c: 6,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 4d⁵ 5s¹",
+        },
+        {
+          z: 43,
+          s: "Tc",
+          mass: "98",
+          r: 5,
+          c: 7,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 4d⁵ 5s²",
+        },
+        {
+          z: 44,
+          s: "Ru",
+          mass: "101.07",
+          r: 5,
+          c: 8,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 4d⁷ 5s¹",
+        },
+        {
+          z: 45,
+          s: "Rh",
+          mass: "102.91",
+          r: 5,
+          c: 9,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 4d⁸ 5s¹",
+        },
+        {
+          z: 46,
+          s: "Pd",
+          mass: "106.42",
+          r: 5,
+          c: 10,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 4d¹⁰",
+        },
+        {
+          z: 47,
+          s: "Ag",
+          mass: "107.87",
+          r: 5,
+          c: 11,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 4d¹⁰ 5s¹",
+        },
+        {
+          z: 48,
+          s: "Cd",
+          mass: "112.41",
+          r: 5,
+          c: 12,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 4d¹⁰ 5s²",
+        },
+
+        {
+          z: 49,
+          s: "In",
+          mass: "114.82",
+          r: 5,
+          c: 13,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 4d¹⁰ 5s² 5p¹",
+        },
+        {
+          z: 50,
+          s: "Sn",
+          mass: "118.71",
+          r: 5,
+          c: 14,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 4d¹⁰ 5s² 5p²",
+        },
+        {
+          z: 51,
+          s: "Sb",
+          mass: "121.76",
+          r: 5,
+          c: 15,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 4d¹⁰ 5s² 5p³",
+        },
+        {
+          z: 52,
+          s: "Te",
+          mass: "127.60",
+          r: 5,
+          c: 16,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 4d¹⁰ 5s² 5p⁴",
+        },
+        {
+          z: 53,
+          s: "I",
+          mass: "126.90",
+          r: 5,
+          c: 17,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 4d¹⁰ 5s² 5p⁵",
+        },
+        {
+          z: 54,
+          s: "Xe",
+          mass: "131.29",
+          r: 5,
+          c: 18,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 4d¹⁰ 5s² 5p⁶",
+        },
+
+        //periode 6//
+        {
+          z: 55,
+          s: "Cs",
+          mass: "132.91",
+          r: 6,
+          c: 1,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s¹",
+        },
+        {
+          z: 56,
+          s: "Ba",
+          mass: "137.33",
+          r: 6,
+          c: 2,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s²",
+        },
+        {
+          z: 57,
+          s: "La",
+          mass: "138.91",
+          r: 6,
+          c: 3,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 5d¹ 6s²",
+        },
+        {
+          z: 72,
+          s: "Hf",
+          mass: "178.49",
+          r: 6,
+          c: 4,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 4f¹⁴ 5d² 6s²",
+        },
+        {
+          z: 73,
+          s: "Ta",
+          mass: "180.95",
+          r: 6,
+          c: 5,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 4f¹⁴ 5d³ 6s²",
+        },
+        {
+          z: 74,
+          s: "W",
+          mass: "183.84",
+          r: 6,
+          c: 6,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 4f¹⁴ 5d⁴ 6s²",
+        },
+        {
+          z: 75,
+          s: "Re",
+          mass: "186.21",
+          r: 6,
+          c: 7,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 4f¹⁴ 5d⁵ 6s²",
+        },
+        {
+          z: 76,
+          s: "Os",
+          mass: "190.23",
+          r: 6,
+          c: 8,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 4f¹⁴ 5d⁶ 6s²",
+        },
+        {
+          z: 77,
+          s: "Ir",
+          mass: "192.22",
+          r: 6,
+          c: 9,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 4f¹⁴ 5d⁷ 6s²",
+        },
+        {
+          z: 78,
+          s: "Pt",
+          mass: "195.08",
+          r: 6,
+          c: 10,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 4f¹⁴ 5d⁹ 6s¹",
+        },
+        {
+          z: 79,
+          s: "Au",
+          mass: "196.97",
+          r: 6,
+          c: 11,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 4f¹⁴ 5d¹⁰ 6s¹",
+        },
+        {
+          z: 80,
+          s: "Hg",
+          mass: "200.59",
+          r: 6,
+          c: 12,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 4f¹⁴ 5d¹⁰ 6s²",
+        },
+        {
+          z: 81,
+          s: "Tl",
+          mass: "204.38",
+          r: 6,
+          c: 13,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 4f¹⁴ 5d¹⁰ 6s² 6p¹",
+        },
+        {
+          z: 82,
+          s: "Pb",
+          mass: "207.2",
+          r: 6,
+          c: 14,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 4f¹⁴ 5d¹⁰ 6s² 6p²",
+        },
+        {
+          z: 83,
+          s: "Bi",
+          mass: "208.98",
+          r: 6,
+          c: 15,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 4f¹⁴ 5d¹⁰ 6s² 6p³",
+        },
+        {
+          z: 84,
+          s: "Po",
+          mass: "209",
+          r: 6,
+          c: 16,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 4f¹⁴ 5d¹⁰ 6s² 6p⁴",
+        },
+        {
+          z: 85,
+          s: "At",
+          mass: "210",
+          r: 6,
+          c: 17,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 4f¹⁴ 5d¹⁰ 6s² 6p⁵",
+        },
+        {
+          z: 86,
+          s: "Rn",
+          mass: "222",
+          r: 6,
+          c: 18,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 4f¹⁴ 5d¹⁰ 6s² 6p⁶",
+        },
+        {
+          z: 87,
+          s: "Fr",
+          mass: "(223)",
+          r: 7,
+          c: 1,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 7s¹",
+        },
+        {
+          z: 88,
+          s: "Ra",
+          mass: "(226)",
+          r: 7,
+          c: 2,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 7s²",
+        },
+
+        {
+          z: 89,
+          s: "Ac",
+          mass: "(227)",
+          r: 7,
+          c: 3,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 6d¹ 7s²",
+        },
+        {
+          z: 90,
+          s: "Th",
+          mass: "232.04",
+          r: 7,
+          c: 4,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 6d² 7s²",
+        },
+        {
+          z: 91,
+          s: "Pa",
+          mass: "231.04",
+          r: 7,
+          c: 5,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f² 6d¹ 7s²",
+        },
+        {
+          z: 92,
+          s: "U",
+          mass: "238.03",
+          r: 7,
+          c: 6,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f³ 6d¹ 7s²",
+        },
+        {
+          z: 93,
+          s: "Np",
+          mass: "(237)",
+          r: 7,
+          c: 7,
+          spdf: " 1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f⁴ 6d¹ 7s²",
+        },
+        {
+          z: 94,
+          s: "Pu",
+          mass: "(244)",
+          r: 7,
+          c: 8,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f⁶ 7s²",
+        },
+        {
+          z: 95,
+          s: "Am",
+          mass: "(243)",
+          r: 7,
+          c: 9,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f⁷ 7s²",
+        },
+        {
+          z: 96,
+          s: "Cm",
+          mass: "(247)",
+          r: 7,
+          c: 10,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f⁷ 6d¹ 7s²",
+        },
+        {
+          z: 97,
+          s: "Bk",
+          mass: "(247)",
+          r: 7,
+          c: 11,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f⁹ 7s²",
+        },
+        {
+          z: 98,
+          s: "Cf",
+          mass: "(251)",
+          r: 7,
+          c: 12,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹⁰ 7s²",
+        },
+        {
+          z: 99,
+          s: "Es",
+          mass: "(252)",
+          r: 7,
+          c: 13,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹¹ 7s²",
+        },
+        {
+          z: 100,
+          s: "Fm",
+          mass: "(257)",
+          r: 7,
+          c: 14,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹² 7s²",
+        },
+        {
+          z: 101,
+          s: "Md",
+          mass: "(258)",
+          r: 7,
+          c: 15,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹³ 7s²",
+        },
+        {
+          z: 102,
+          s: "No",
+          mass: "(259)",
+          r: 7,
+          c: 16,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹⁴ 7s²",
+        },
+        {
+          z: 103,
+          s: "Lr",
+          mass: "(262)",
+          r: 7,
+          c: 17,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹⁴ 6d¹ 7s²",
+        },
+
+        {
+          z: 104,
+          s: "Rf",
+          mass: "(267)",
+          r: 7,
+          c: 4,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹⁴ 6d² 7s²",
+        },
+        {
+          z: 105,
+          s: "Db",
+          mass: "(268)",
+          r: 7,
+          c: 5,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹⁴ 6d³ 7s²",
+        },
+        {
+          z: 106,
+          s: "Sg",
+          mass: "(271)",
+          r: 7,
+          c: 6,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹⁴ 6d⁴ 7s²",
+        },
+        {
+          z: 107,
+          s: "Bh",
+          mass: "(270)",
+          r: 7,
+          c: 7,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹⁴ 6d⁵ 7s²",
+        },
+        {
+          z: 108,
+          s: "Hs",
+          mass: "(277)",
+          r: 7,
+          c: 8,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹⁴ 6d⁶ 7s²",
+        },
+        {
+          z: 109,
+          s: "Mt",
+          mass: "(278)",
+          r: 7,
+          c: 9,
+          spdf: "11s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹⁴ 6d⁷ 7s²",
+        },
+        {
+          z: 110,
+          s: "Ds",
+          mass: "(281)",
+          r: 7,
+          c: 10,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹⁴ 6d⁸ 7s²",
+        },
+        {
+          z: 111,
+          s: "Rg",
+          mass: "(282)",
+          r: 7,
+          c: 11,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹⁴ 6d⁹ 7s²",
+        },
+        {
+          z: 112,
+          s: "Cn",
+          mass: "(285)",
+          r: 7,
+          c: 12,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹⁴ 6d¹⁰ 7s²",
+        },
+        {
+          z: 113,
+          s: "Nh",
+          mass: "(286)",
+          r: 7,
+          c: 13,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶5f¹⁴ 6d¹⁰ 7s² 7p¹",
+        },
+        {
+          z: 114,
+          s: "Fl",
+          mass: "(289)",
+          r: 7,
+          c: 14,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹⁴ 6d¹⁰ 7s² 7p²",
+        },
+        {
+          z: 115,
+          s: "Mc",
+          mass: "(290)",
+          r: 7,
+          c: 15,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹⁴ 6d¹⁰ 7s² 7p³",
+        },
+        {
+          z: 116,
+          s: "Lv",
+          mass: "(293)",
+          r: 7,
+          c: 16,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹⁴ 6d¹⁰ 7s² 7p⁴",
+        },
+        {
+          z: 117,
+          s: "Ts",
+          mass: "(294)",
+          r: 7,
+          c: 17,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹⁴ 6d¹⁰ 7s² 7p⁵",
+        },
+        {
+          z: 118,
+          s: "Og",
+          mass: "(294)",
+          r: 7,
+          c: 18,
+          spdf: "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹⁰ 4p⁶ 5s² 4d¹⁰ 5p⁶ 6s² 4f¹⁴ 5d¹⁰ 6p⁶ 5f¹⁴ 6s² 6p⁶ 6d¹⁰ 7s² 7p⁶",
+        },
+      ];
+
+      // Fungsi untuk mendapatkan warna berdasarkan golongan
+
+      function getColor(z) {
+        if ([3, 11, 19, 37, 55, 87].includes(z)) return "var(--alkali)";
+        if ([4, 12, 20, 38, 56, 88].includes(z)) return "var(--alkaline)";
+        if ([9, 17, 35, 53, 85, 117].includes(z)) return "var(--halogen)";
+        if ([2, 10, 18, 36, 54, 86, 118].includes(z)) return "var(--noble)";
+        if ([5, 14, 32, 33, 51, 52, 84].includes(z)) return "var(--metalloid)";
+        if ([1, 6, 7, 8, 15, 16, 34].includes(z)) return "var(--nonmetal)";
+        if (z >= 21 && z <= 30) return "var(--transition)";
+        if (z >= 39 && z <= 48) return "var(--transition)";
+        if ((z >= 57 && z <= 71) || (z >= 89 && z <= 103))
+          return "var(--transition)";
+        if (z >= 72 && z <= 80) return "var(--transition)";
+        if (z >= 104 && z <= 112) return "var(--transition)";
+        if ([13, 31, 49, 50, 81, 82, 83, 113, 114, 115, 116].includes(z))
+          return "var(--posttransition)";
+        return "var(--other)";
+      }
+
+      // Bangun tabel
+      const grid = document.getElementById("ptable");
+      const clickSound = document.getElementById("clickSound");
+      let soundEnabled = true; // default suara aktif
+      const toggleBtn = document.createElement("button");
+      toggleBtn.id = "toggleSound";
+      toggleBtn.style = "margin:10px;padding:6px 12px;";
+      toggleBtn.textContent = "🔊 Matikan Sound";
+      document.body.insertBefore(
+        toggleBtn,
+        document.querySelector(".table-wrap")
+      );
+
+      toggleBtn.onclick = () => {
+        soundEnabled = !soundEnabled;
+
+        if (!soundEnabled) {
+          // Jika dimatikan, hentikan musik segera
+          clickSound.pause();
+          clickSound.currentTime = 0;
+          toggleBtn.textContent = "🔇 Nyalakan Sound";
+        } else {
+          toggleBtn.textContent = "🔊 Matikan Sound";
+        }
+      };
+
+      // Fungsi untuk mengubah angka menjadi superscript
+      function toSuperscript(text) {
+        const superscriptMap = {
+          0: "⁰",
+          1: "¹",
+          2: "²",
+          3: "³",
+          4: "⁴",
+          5: "⁵",
+          6: "⁶",
+          7: "⁷",
+          8: "⁸",
+          9: "⁹",
+        };
+
+        return text.replace(/\d+/g, (match) => {
+          return match
+            .split("")
+            .map((digit) => superscriptMap[digit] || digit)
+            .join("");
+        });
+      }
+
+      // Fungsi untuk memformat input pengguna menjadi format spdf dengan superscript
+      function formatElectronConfig(input) {
+        // Hapus spasi berlebih
+        let formatted = input.trim().toUpperCase();
+
+        // Format: 1s2 -> 1s²
+        formatted = formatted.replace(
+          /(\d+)([SPDF])(\d+)/gi,
+          (match, n, orbital, electrons) => {
+            return n + orbital.toLowerCase() + toSuperscript(electrons);
+          }
+        );
+
+        // Format untuk 1s²  1s² 2s² 2p⁶, 1s² 2s² 2p⁶ 3s² 3p⁶, dll tetap huruf besar
+        formatted = formatted.replace(/\[([A-Z]+)\]/g, (match) =>
+          match.toUpperCase()
+        );
+
+        return formatted;
+      }
+
+      // Fungsi untuk normalisasi perbandingan (hapus superscript untuk perbandingan)
+      function normalizeConfig(text) {
+        const superToNormal = {
+          "⁰": "0",
+          "¹": "1",
+          "²": "2",
+          "³": "3",
+          "⁴": "4",
+          "⁵": "5",
+          "⁶": "6",
+          "⁷": "7",
+          "⁸": "8",
+          "⁹": "9",
+        };
+
+        let normalized = text.toUpperCase();
+        Object.keys(superToNormal).forEach((sup) => {
+          normalized = normalized.replace(
+            new RegExp(sup, "g"),
+            superToNormal[sup]
+          );
+        });
+
+        // Hapus semua spasi
+        normalized = normalized.replace(/\s+/g, "");
+
+        return normalized;
+      }
+
+      elements.forEach((el) => {
+        const color = getColor(el.z);
+        const card = document.createElement("div");
+        card.className = "element";
+        card.style.gridRow = el.r;
+        card.style.gridColumn = el.c;
+        card.innerHTML = `
+                        <div class="inner">
+                          <div class="face front">
+                            <div class="atomic-number">${el.z}</div>
+                            <div class="symbol">${el.s}</div>
+                            <div class="mass">${el.mass}</div>
+                          </div>
+                          <div class="face back" style="background:${color}">
+                            <div style="font-size:calc(var(--card-h)*0.12); line-height:1.4; word-spacing:0.1em;">
+                              ${el.spdf}
+                            </div>
+                          </div>
+                        </div>
+                        <div class="input-wrap">
+                      <input type="text" placeholder="Tulis konfigurasi elektron" />
+                      <button class="submitBtn">✔</button>
+                    </div>
+                      `;
+
+        const input = card.querySelector("input");
+        const submitBtn = card.querySelector(".submitBtn");
+        function checkAnswer() {
+          // Format input pengguna dengan superscript
+          const userInput = formatElectronConfig(input.value.trim());
+
+          // Normalisasi keduanya untuk perbandingan
+          const normalizedUser = normalizeConfig(userInput);
+          const normalizedCorrect = normalizeConfig(el.spdf);
+
+          if (normalizedUser === normalizedCorrect) {
+            // Jawaban benar
+            card.classList.add("flipped");
+            if (soundEnabled) {
+              clickSound.currentTime = 0;
+              clickSound.play();
+            }
+            input.value = userInput; // Tampilkan format yang sudah diperbaiki
+            input.disabled = true;
+            submitBtn.disabled = true;
+            input.style.borderColor = "green";
+            input.style.backgroundColor = "rgba(0, 255, 0, 0.1)";
+          } else {
+            // Jawaban salah
+            input.style.borderColor = "red";
+            input.style.backgroundColor = "rgba(255, 0, 0, 0.1)";
+
+            // Shake animation
+            input.style.animation = "shake 0.5s";
+            setTimeout(() => {
+              input.style.animation = "";
+            }, 500);
+          }
+        }
+
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            checkAnswer();
+          }
+        });
+
+        submitBtn.addEventListener("click", checkAnswer);
+
+        const inner = card.querySelector(".inner");
+
+        input.addEventListener("keyup", (e) => {
+          if (e.key === "Enter") {
+            const answer = input.value.trim().toUpperCase();
+            if (answer === el.spdf.toUpperCase()) {
+              card.classList.add("flipped");
+              if (soundEnabled) {
+                clickSound.currentTime = 0;
+                clickSound.play();
+              }
+              input.disabled = true; // kunci input setelah benar
+            } else {
+              input.style.borderColor = "red"; // feedback salah
+            }
+          }
+        });
+
+        // Tambahkan klik pada inner untuk reset
+        inner.addEventListener("click", () => {
+          if (card.classList.contains("flipped")) {
+            // Jika sudah terbalik, balikkan lagi
+            card.classList.remove("flipped");
+            input.value = ""; // hapus jawaban
+            input.disabled = false; // aktifkan input kembali
+            input.style.borderColor = ""; // reset border
+          }
+        });
+
+        grid.appendChild(card);
+      });
+    </script>
+  </body>
+</html>
