@@ -442,6 +442,10 @@
   </head>
   <body>
     <audio id="clickSound" src="sound.mp3"></audio>
+    <audio id="correctSound" src="correct.mp3"></audio>
+    <audio id="wrongSound" src="wrong.mp3"></audio>
+    <audio id="typingSound" src="typing.mp3"></audio>
+
     <h1>Tabel Periodik Interaktif – Flipped Periodic Table</h1>
     <p class="subtitle">Ayo Belajar Konfigurasi Elektron</p>
 
@@ -1293,6 +1297,9 @@
       // Bangun tabel
       const grid = document.getElementById("ptable");
       const clickSound = document.getElementById("clickSound");
+      const correctSound = document.getElementById("correctSound");
+      const wrongSound = document.getElementById("wrongSound");
+      const typingSound = document.getElementById("typingSound");
       let soundEnabled = true; // default suara aktif
       const toggleBtn = document.createElement("button");
       toggleBtn.id = "toggleSound";
@@ -1446,6 +1453,10 @@
             // Jawaban salah
             input.style.borderColor = "red";
             input.style.backgroundColor = "rgba(255, 0, 0, 0.1)";
+            if (soundEnabled) {
+              wrongSound.currentTime = 0;
+              wrongSound.play();
+            }
             input.style.animation = "shake 0.5s";
             setTimeout(() => (input.style.animation = ""), 500);
           }
@@ -1515,15 +1526,14 @@
 
       // 🔥 Konfigurasi Firebase
       const firebaseConfig = {
-  apiKey: "AIzaSyC_9KDssyYNV6vBh3yKLnyFwZVsk47uq7I",
-  authDomain: "login-731fd.firebaseapp.com",
-  databaseURL: "https://login-731fd-default-rtdb.firebaseio.com/",
-  projectId: "login-731fd",
-  storageBucket: "login-731fd.appspot.com",
-  messagingSenderId: "1000932743704",
-  appId: "1:1000932743704:web:c2e2fc36435ed2fd48416d",
-};
-
+        apiKey: "AIzaSyC_9KDssyYNV6vBh3yKLnyFwZVsk47uq7I",
+        authDomain: "login-731fd.firebaseapp.com",
+        databaseURL: "https://login-731fd-default-rtdb.firebaseio.com/",
+        projectId: "login-731fd",
+        storageBucket: "login-731fd.appspot.com",
+        messagingSenderId: "1000932743704",
+        appId: "1:1000932743704:web:c2e2fc36435ed2fd48416d",
+      };
 
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
