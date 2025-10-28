@@ -444,7 +444,7 @@
     <audio id="clickSound" src="sound.mp3"></audio>
     <audio id="correctSound" src="correct.mp3"></audio>
     <audio id="wrongSound" src="wrong.mp3"></audio>
-    <audio id="typingSound" src="typing.mp3"></audio>
+    <audio id="backgroundMusic" src="backsound.mp3" loop></audio>
 
     <h1>Tabel Periodik Interaktif – Flipped Periodic Table</h1>
     <p class="subtitle">Ayo Belajar Konfigurasi Elektron</p>
@@ -1300,7 +1300,9 @@
       const correctSound = document.getElementById("correctSound");
       const wrongSound = document.getElementById("wrongSound");
       const typingSound = document.getElementById("typingSound");
-      let soundEnabled = true; // default suara aktif
+      const backgroundMusic = document.getElementById("backgroundMusic"); // 🔊 backsound
+
+      let soundEnabled = true; // default: aktif
       const toggleBtn = document.createElement("button");
       toggleBtn.id = "toggleSound";
       toggleBtn.style = "margin:10px;padding:6px 12px;";
@@ -1310,19 +1312,45 @@
         document.querySelector(".table-wrap")
       );
 
+      // Jalankan backsound saat awal (setelah interaksi pertama)
+      window.addEventListener(
+        "click",
+        () => {
+          if (soundEnabled && backgroundMusic.paused) {
+            backgroundMusic.volume = 0.3; // pelan agar tidak mengganggu
+            backgroundMusic.play().catch(() => {});
+          }
+        },
+        { once: true }
+      );
+
       toggleBtn.onclick = () => {
         soundEnabled = !soundEnabled;
 
+        // Daftar audio
+        const audios = [
+          document.getElementById("clickSound"),
+          document.getElementById("correctSound"),
+          document.getElementById("wrongSound"),
+          document.getElementById("typingSound"),
+          document.getElementById("backgroundMusic"),
+        ].filter((a) => a !== null); // ⬅️ Hindari null
+
         if (!soundEnabled) {
-          // Jika dimatikan, hentikan musik segera
-          clickSound.pause();
-          clickSound.currentTime = 0;
+          audios.forEach((a) => {
+            a.pause();
+            a.currentTime = 0;
+          });
           toggleBtn.textContent = "🔇 Nyalakan Sound";
         } else {
+          const bg = document.getElementById("backgroundMusic");
+          if (bg) {
+            bg.volume = 0.3;
+            bg.play().catch(() => {});
+          }
           toggleBtn.textContent = "🔊 Matikan Sound";
         }
       };
-
       // Fungsi untuk mengubah angka menjadi superscript
       function toSuperscript(text) {
         const superscriptMap = {
